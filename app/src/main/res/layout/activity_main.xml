@@ -14,14 +14,18 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
+        android:background="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="48dp"
+            android:background="@android:color/black"
+            app:titleTextColor="@android:color/white"
+            app:titleTextAppearance="@style/ToolbarTitleCompact"
+            app:iconTint="@android:color/white"
             app:menu="@menu/action_bar"
             app:title="@string/app_name" />
 
@@ -35,7 +39,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_menu"
-        app:labelVisibilityMode="selected" />
+        android:background="@android:color/black"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemIconSize="24dp"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:itemActiveIndicatorStyle="@null"
+        app:labelVisibilityMode="labeled"
+        app:itemTextAppearanceActive="@style/BottomNavLabel"
+        app:itemTextAppearanceInactive="@style/BottomNavLabel" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment"
@@ -57,4 +68,28 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/createButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="Crear"
+        android:elevation="21dp"
+        android:outlineProvider="none"
+        android:stateListAnimator="@null"
+        app:useCompatPadding="false"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="#202124"
+        app:borderWidth="0dp"
+        app:elevation="21dp"
+        app:hoveredFocusedTranslationZ="0dp"
+        app:pressedTranslationZ="0dp"
+        app:fabCustomSize="48dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        app:layout_constraintBottom_toBottomOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/bottomNav"
+        app:tint="@android:color/white" />
+
 </androidx.constraintlayout.motion.widget.MotionLayout>

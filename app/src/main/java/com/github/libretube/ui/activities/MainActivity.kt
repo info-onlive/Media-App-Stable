@@ -175,6 +175,7 @@ class MainActivity : AbstractPlayerHostActivity() {
 
         // set the action bar for the activity
         setSupportActionBar(binding.toolbar)
+        binding.toolbar.overflowIcon?.setTint(android.graphics.Color.WHITE)
 
         val navHostFragment = binding.fragment.getFragment<NavHostFragment>()
         navController = navHostFragment.navController
@@ -340,7 +341,7 @@ class MainActivity : AbstractPlayerHostActivity() {
             val searchIconResource = when (currentSearchType) {
                 SearchType.DOWNLOADS -> R.drawable.ic_download_search
                 SearchType.PLAYLIST -> R.drawable.ic_playlist_search
-                SearchType.ONLINE -> R.drawable.ic_search
+                SearchType.ONLINE -> R.drawable.ic_search_toolbar
             }
 
             searchItem.setIcon(searchIconResource)
@@ -598,6 +599,11 @@ class MainActivity : AbstractPlayerHostActivity() {
     }
 
     private fun navigateToBottomSelectedItem(item: MenuItem): Boolean {
+        if (item.itemId == R.id.downloadsFragment) {
+            // Botón central "+" reservado para acciones de creación.
+            return false
+        }
+
         if (item.itemId == R.id.subscriptionsFragment) {
             binding.bottomNav.removeBadge(R.id.subscriptionsFragment)
         }

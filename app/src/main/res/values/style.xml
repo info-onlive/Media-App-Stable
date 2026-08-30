@@ -224,4 +224,24 @@
         <item name="android:layout_marginStart">16dp</item>
     </style>
 
+
+    <style name="BottomNavLabel">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+
+    <style name="HomeFilterChip" parent="Widget.Material3.Chip.Filter.Elevated">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="chipBackgroundColor">@color/home_chip_bg</item>
+        <item name="android:textColor">@color/home_chip_text</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
+
+    <style name="ToolbarTitleCompact">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
 </resources>

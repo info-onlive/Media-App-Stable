@@ -7,6 +7,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.github.libretube.R
@@ -31,6 +32,9 @@ import com.google.android.material.carousel.CarouselSnapHelper
 import com.google.android.material.carousel.UncontainedCarouselStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -108,6 +112,74 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.refresh.setOnRefreshListener {
             binding.refresh.isRefreshing = true
             fetchHomeFeed()
+        }
+
+        binding.homeChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            when (checkedIds.firstOrNull()) {
+                R.id.chip_all -> {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val region = PreferenceHelper.getTrendingRegion(requireContext())
+
+                        val allVideos = withContext(Dispatchers.IO) {
+                            listOf(
+                                TrendingCategory.MUSIC,
+                                TrendingCategory.LIVE,
+                                TrendingCategory.GAMING,
+                                TrendingCategory.TRAILERS,
+                                TrendingCategory.PODCASTS
+                            ).flatMap { category ->
+                                MediaServiceRepository.instance
+                                    .getTrending(region, category)
+                                    .take(5)
+                            }
+                                .distinctBy { it.url }
+                                .shuffled()
+                                .take(20)
+                        }
+
+                        trendingAdapter.submitList(allVideos)
+                    }
+                }
+
+                R.id.chip_music -> {
+                    PreferenceHelper.putString(
+                        PreferenceKeys.TRENDING_CATEGORY,
+                        TrendingCategory.MUSIC.name
+                    )
+                    fetchHomeFeed()
+                }
+
+                R.id.chip_live -> {
+                    PreferenceHelper.putString(
+                        PreferenceKeys.TRENDING_CATEGORY,
+                        TrendingCategory.LIVE.name
+                    )
+                    fetchHomeFeed()
+                }
+
+                R.id.chip_gaming -> {
+                    PreferenceHelper.putString(
+                        PreferenceKeys.TRENDING_CATEGORY,
+                        TrendingCategory.GAMING.name
+                    )
+                    fetchHomeFeed()
+                }
+
+                R.id.chip_news -> {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val newsVideos = withContext(Dispatchers.IO) {
+                            MediaServiceRepository.instance
+                                .getSearchResults("noticias", "videos")
+                                .items
+                                .filter { it.type == "stream" || it.type == "video" }
+                                .map { it.toStreamItem() }
+                                .take(20)
+                        }
+
+                        trendingAdapter.submitList(newsVideos)
+                    }
+                }
+            }
         }
 
         binding.trendingRegion.setOnClickListener {
@@ -201,7 +273,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             TrendsViewModel.TrendingStreams(region, trendingStreams.streams)
         )
 
-        makeVisible(binding.trendingRV, binding.trendingTV)
+        makeVisible(binding.trendingRV)
         trendingAdapter.submitList(trendingStreams.streams.take(10))
     }
 

@@ -4,28 +4,26 @@
     <item
         android:id="@+id/homeFragment"
         android:icon="@drawable/ic_home"
-        android:title="@string/startpage" />
+        android:title="Home" />
 
     <item
         android:id="@+id/trendsFragment"
-        android:icon="@drawable/ic_trending"
-        android:title="@string/trends"
-        android:visible="false" />
+        android:icon="@drawable/ic_shorts"
+        android:title="Shorts" />
+
+    <item
+        android:id="@+id/downloadsFragment"
+        android:icon="@drawable/ic_nav_empty"
+        android:title="" />
 
     <item
         android:id="@+id/subscriptionsFragment"
         android:icon="@drawable/ic_subscriptions"
-        android:title="@string/subscriptions" />
+        android:title="Suscripciones" />
 
     <item
         android:id="@+id/libraryFragment"
-        android:icon="@drawable/ic_library"
-        android:title="@string/library" />
-
-    <item
-        android:id="@+id/downloadsFragment"
-        android:icon="@drawable/ic_download_filled"
-        android:title="@string/downloads"
-        android:visible="false" />
+        android:icon="@drawable/ic_person"
+        android:title="Tú" />
 
 </menu>

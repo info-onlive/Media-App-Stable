@@ -84,7 +84,7 @@ open class OnlinePlayerService : AbstractPlayerService() {
 
                 Player.STATE_BUFFERING -> {}
                 Player.STATE_READY -> {
-                    // save video to watch history when the video starts playing or is being resumed
+// save video to watch history when the video starts playing or is being resumed
                     // waiting for the player to be ready since the video can't be claimed to be watched
                     // while it did not yet start actually, but did buffer only so far
                     if (PlayerHelper.watchHistoryEnabled) {
@@ -137,7 +137,9 @@ open class OnlinePlayerService : AbstractPlayerService() {
         fetchVideoInfoJob = scope.launch {
             streams = withContext(Dispatchers.IO) {
                 try {
-                    MediaServiceRepository.instance.getStreams(videoId).let {
+                val result = MediaServiceRepository.instance.getStreams(videoId)
+
+                    result.let {
                         DeArrowUtil.deArrowStreams(it, videoId)
                     }
                 }  catch (e: Exception) {
@@ -165,8 +167,8 @@ open class OnlinePlayerService : AbstractPlayerService() {
             }
 
             withContext(Dispatchers.Main) {
-                setStreamSource()
-                configurePlayer(timestampMs)
+            setStreamSource()
+            configurePlayer(timestampMs)
             }
         }
 

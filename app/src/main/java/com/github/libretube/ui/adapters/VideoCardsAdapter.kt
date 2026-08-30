@@ -8,6 +8,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.ListAdapter
+import com.github.libretube.api.MediaServiceRepository
 import com.github.libretube.api.SponsorBlockLabelHelper
 import com.github.libretube.api.obj.StreamItem
 import com.github.libretube.constants.IntentData
@@ -110,6 +111,14 @@ class VideoCardsAdapter(private val columnWidthDp: Float? = null) :
                     NavigationHelper.navigateChannel(root.context, video.uploaderUrl)
                 }
             }
+            if (preloadedVideoIds.add(videoId)) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    runCatching {
+                        MediaServiceRepository.instance.getStreams(videoId)
+                    }
+                }
+            }
+
             root.setOnClickListener {
                 NavigationHelper.navigateVideo(root.context, PlayerData(videoId))
             }
@@ -157,6 +166,8 @@ class VideoCardsAdapter(private val columnWidthDp: Float? = null) :
     }
 
     companion object {
+        private val preloadedVideoIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
         private const val NORMAL_TYPE = 0
         private const val CAUGHT_UP_TYPE = 1
 

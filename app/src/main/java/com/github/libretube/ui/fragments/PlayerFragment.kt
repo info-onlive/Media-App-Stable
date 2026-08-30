@@ -12,6 +12,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.media.session.PlaybackState
 import android.os.Bundle
+import android.util.Log
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -450,40 +451,9 @@ class PlayerFragment : Fragment(R.layout.fragment_player), CustomPlayerCallback 
             }
         }
 
-        val localDownloadVersion = runBlocking(Dispatchers.IO) {
-            DatabaseHolder.Database.downloadDao().findById(videoId)
-        }
-
-        if (!isOffline && localDownloadVersion != null && createNewSession) {
-            // the dialog must also be visible when in fullscreen, thus we need to use the activity's
-            // fragment manager and not the one from [PlayerFragment]
-            val fragmentManager = requireActivity().supportFragmentManager
-
-            fragmentManager.setFragmentResultListener(
-                PlayOfflineDialog.PLAY_OFFLINE_DIALOG_REQUEST_KEY, viewLifecycleOwner
-            ) { _, bundle ->
-                isOffline = bundle.getBoolean(IntentData.isPlayingOffline)
-
-                // start a new playback session - the method will read `isOffline` and decide whether
-                // to play the downloaded video based on it, so it's enough to set `isOffline` here
-                attachToPlayerService(playerData, true)
-            }
-
-            val downloadInfo = DownloadHelper.extractDownloadInfoText(
-                requireContext(),
-                localDownloadVersion
-            ).toTypedArray()
-
-            PlayOfflineDialog().apply {
-                arguments = bundleOf(
-                    IntentData.videoId to videoId,
-                    IntentData.videoTitle to localDownloadVersion.download.title,
-                    IntentData.downloadInfo to downloadInfo
-                )
-            }.show(fragmentManager, null)
-        } else {
-            attachToPlayerService(playerData, createNewSession)
-        }
+        // Always play the online version when opening a video normally.
+        // A downloaded copy should not interrupt playback with the offline dialog.
+        attachToPlayerService(playerData, createNewSession)
 
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -537,13 +507,12 @@ class PlayerFragment : Fragment(R.layout.fragment_player), CustomPlayerCallback 
                 IntentData.audioOnly to false
             )
         }
-
-        BackgroundHelper.startMediaService(
+BackgroundHelper.startMediaService(
             requireContext(),
             serviceClass,
             if (startNewSession) args else Bundle.EMPTY,
         ) {
-            if (_binding == null) {
+if (_binding == null) {
                 playerController.sendCustomCommand(
                     AbstractPlayerService.stopServiceCommand,
                     Bundle.EMPTY

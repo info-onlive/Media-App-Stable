@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:colorBackground">
+    android:background="@android:color/black">
 
     <com.github.libretube.ui.views.CustomSwipeToRefresh
         android:id="@+id/refresh"
@@ -25,6 +25,60 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingBottom="10dp">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:fillViewport="false"
+                    android:overScrollMode="never"
+                    android:background="@android:color/black"
+                    android:paddingHorizontal="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/home_chip_group"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:singleLine="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip_all"
+                            style="@style/HomeFilterChip"
+                            app:checkedIconVisible="false"
+                            android:text="Todo"
+                            android:checked="true" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip_music"
+                            style="@style/HomeFilterChip"
+                            app:checkedIconVisible="false"
+                            android:text="Música" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip_live"
+                            style="@style/HomeFilterChip"
+                            app:checkedIconVisible="false"
+                            android:text="En vivo" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip_gaming"
+                            style="@style/HomeFilterChip"
+                            app:checkedIconVisible="false"
+                            android:text="Gaming" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip_news"
+                            style="@style/HomeFilterChip"
+                            app:checkedIconVisible="false"
+                            android:text="Noticias" />
+
+                    </com.google.android.material.chip.ChipGroup>
+
+                </HorizontalScrollView>
 
                 <LinearLayout
                     android:id="@+id/featuredTV"
@@ -130,7 +184,7 @@
                         android:nestedScrollingEnabled="false"
                         android:visibility="gone"
                         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                        app:spanCount="2" />
+                        app:spanCount="1" />
 
                 </RelativeLayout>
 

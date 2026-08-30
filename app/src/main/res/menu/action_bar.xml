@@ -3,12 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_cast"
+        android:icon="@drawable/ic_cast"
+        android:title="Cast"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_notifications"
+        android:icon="@drawable/ic_bell_toolbar"
+        android:title="Notificaciones"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_search"
         android:focusableInTouchMode="true"
-        android:icon="@drawable/ic_search"
+        android:icon="@drawable/ic_search_toolbar"
         android:title="@string/search_hint"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView" />
+        app:showAsAction="always|collapseActionView" />
 
     <item
         android:id="@+id/action_settings"

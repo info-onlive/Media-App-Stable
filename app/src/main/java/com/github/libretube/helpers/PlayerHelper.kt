@@ -359,7 +359,7 @@ object PlayerHelper {
     val localRYD: Boolean
         get() = PreferenceHelper.getBoolean(
             PreferenceKeys.LOCAL_RYD,
-            true
+            false
         )
 
     var repeatMode: Int
@@ -511,8 +511,8 @@ object PlayerHelper {
             .setBufferDurationsMs(
                 MINIMUM_BUFFER_DURATION,
                 max(bufferingGoal, MINIMUM_BUFFER_DURATION),
-                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
-                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+                1000,
+                2000
             )
             .build()
     }

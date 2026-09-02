@@ -105,6 +105,13 @@ class MainActivity : AbstractPlayerHostActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        if (!activationPrefs.getBoolean("is_activated", false)) {
+            startActivity(Intent(this, ActivationActivity::class.java))
+            finish()
+            return
+        }
+
         // show noInternet Activity if no internet available on app startup
         if (!NetworkHelper.isNetworkAvailable(this)) {
             val noInternetIntent = Intent(this, NoInternetActivity::class.java)

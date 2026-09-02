@@ -19,11 +19,13 @@
 
         <com.github.libretube.ui.views.AppIconHeader
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/donate"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"
@@ -34,7 +36,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/website"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"
@@ -45,7 +48,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/github"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"
@@ -56,7 +60,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/piped"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"
@@ -67,7 +72,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/translate"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"
@@ -78,7 +84,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/license"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"
@@ -89,7 +96,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/device"
-            style="@style/AboutCard">
+            style="@style/AboutCard"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.AppCompatTextView
                 style="@style/AboutItem"

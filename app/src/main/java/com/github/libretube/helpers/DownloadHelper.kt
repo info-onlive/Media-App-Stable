@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentManager
 import com.github.libretube.R
 import com.github.libretube.api.PlaylistsHelper
+import com.github.libretube.api.MediaServiceRepository
 import com.github.libretube.constants.IntentData
 import com.github.libretube.constants.PreferenceKeys
 import com.github.libretube.db.DatabaseHolder
@@ -16,10 +17,10 @@ import com.github.libretube.db.obj.DownloadWithItems
 import com.github.libretube.enums.FileType
 import com.github.libretube.enums.PlaylistType
 import com.github.libretube.extensions.toID
+import com.github.libretube.extensions.getWhileDigit
 import com.github.libretube.extensions.toastFromMainDispatcher
 import com.github.libretube.parcelable.DownloadData
 import com.github.libretube.services.DownloadService
-import com.github.libretube.ui.dialogs.DownloadDialog
 import com.github.libretube.ui.dialogs.DownloadPlaylistDialog
 import com.github.libretube.ui.dialogs.ShareDialog
 import kotlinx.coroutines.CoroutineScope
@@ -68,9 +69,55 @@ object DownloadHelper {
             PreferenceHelper.getString(PreferenceKeys.EXTERNAL_DOWNLOAD_PROVIDER, "")
 
         if (externalProviderPackageName.isBlank()) {
-            DownloadDialog().apply {
-                arguments = bundleOf(IntentData.videoId to videoId)
-            }.show(fragmentManager, DownloadDialog::class.java.name)
+            CoroutineScope(Dispatchers.Main).launch {
+                val streams = try {
+                    withContext(Dispatchers.IO) {
+                        MediaServiceRepository.instance.getStreams(videoId)
+                    }
+                } catch (e: Exception) {
+                    context.toastFromMainDispatcher(e.localizedMessage.orEmpty())
+                    return@launch
+                }
+
+                val videoStreams = streams.videoStreams
+                    .filter { !it.url.isNullOrEmpty() }
+                    .filter { !it.format.orEmpty().contains("HLS") }
+                    .sortedByDescending { it.quality.getWhileDigit() }
+
+                val videoStream =
+                    videoStreams.firstOrNull { it.quality.getWhileDigit() == 1080 }
+                        ?: videoStreams.firstOrNull()
+
+                val audioStream = streams.audioStreams
+                    .filter { !it.url.isNullOrEmpty() }
+                    .sortedBy {
+                        PlayerHelper.getFullAudioRoleFlags(
+                            0,
+                            it.audioTrackType.orEmpty()
+                        )
+                    }
+                    .sortedByDescending { it.quality.getWhileDigit() }
+                    .firstOrNull()
+
+                if (videoStream == null && audioStream == null) {
+                    context.toastFromMainDispatcher(
+                        context.getString(R.string.nothing_selected)
+                    )
+                    return@launch
+                }
+
+                val downloadData = DownloadData(
+                    videoId = videoId,
+                    videoFormat = videoStream?.format,
+                    videoQuality = videoStream?.quality,
+                    audioFormat = audioStream?.format,
+                    audioQuality = audioStream?.quality,
+                    audioLanguage = audioStream?.audioTrackLocale,
+                    subtitleCode = null
+                )
+
+                startDownloadService(context, downloadData)
+            }
         } else {
             val intent = Intent(Intent.ACTION_VIEW)
                 .setPackage(externalProviderPackageName)

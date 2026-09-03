@@ -12,6 +12,7 @@ import retrofit2.create
 
 object RetrofitInstance {
     const val PIPED_API_URL = "https://pipedapi.kavin.rocks"
+    const val ACTIVATION_API_URL = "https://nexum.kasbetec.site/"
 
     val authUrl
         get() = if (
@@ -40,6 +41,10 @@ object RetrofitInstance {
 
     // the url provided here isn't actually used anywhere in the external api
     val externalApi = buildRetrofitInstance<ExternalApi>(PIPED_API_URL)
+
+    val activationApi by lazy {
+        buildRetrofitInstance<ActivationApi>(ACTIVATION_API_URL)
+    }
 
     private fun buildClient(): OkHttpClient {
         val httpClient = OkHttpClient().newBuilder()

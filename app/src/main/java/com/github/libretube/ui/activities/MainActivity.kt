@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.libretube.BuildConfig
 import com.github.libretube.NavDirections
 import com.github.libretube.R
+import com.github.libretube.api.RetrofitInstance
 import com.github.libretube.compat.PictureInPictureCompat
 import com.github.libretube.constants.IntentData
 import com.github.libretube.constants.PreferenceKeys
@@ -53,6 +54,7 @@ import com.github.libretube.ui.dialogs.ImportTempPlaylistDialog
 import com.github.libretube.ui.extensions.onSystemInsets
 import com.github.libretube.ui.fragments.DownloadsFragment
 import com.github.libretube.ui.models.DownloadsViewModel
+import kotlinx.coroutines.delay
 import com.github.libretube.ui.models.PlaylistViewModel
 import com.github.libretube.ui.models.SearchViewModel
 import com.github.libretube.ui.models.SubscriptionsViewModel
@@ -66,6 +68,41 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 class MainActivity : AbstractPlayerHostActivity() {
     private lateinit var binding: ActivityMainBinding
+
+    private var activationMonitorStarted = false
+
+    private fun startActivationMonitor() {
+        if (activationMonitorStarted) return
+        activationMonitorStarted = true
+
+        lifecycleScope.launch {
+            while (true) {
+                delay(10 * 60 * 1000L)
+
+                val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+                if (!activationPrefs.getBoolean("is_activated", false)) continue
+
+                val code = activationPrefs.getString("activation_code", null) ?: continue
+                if (!NetworkHelper.isNetworkAvailable(this@MainActivity)) continue
+
+                try {
+                    val response = RetrofitInstance.activationApi.checkCode(code)
+
+                    if (!response.ok) {
+                        activationPrefs.edit().clear().apply()
+                        startActivity(
+                            Intent(this@MainActivity, ActivationActivity::class.java)
+                        )
+                        finish()
+                        break
+                    }
+                } catch (_: Exception) {
+                    // Un fallo temporal de internet no desactiva al usuario.
+                }
+            }
+        }
+    }
+
 
     lateinit var navController: NavController
     private var startFragmentId = R.id.homeFragment
@@ -101,6 +138,32 @@ class MainActivity : AbstractPlayerHostActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        if (!activationPrefs.getBoolean("is_activated", false)) return
+
+        val code = activationPrefs.getString("activation_code", null) ?: return
+
+        if (!NetworkHelper.isNetworkAvailable(this)) return
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.activationApi.checkCode(code)
+
+                if (!response.ok) {
+                    activationPrefs.edit().clear().apply()
+
+                    startActivity(Intent(this@MainActivity, ActivationActivity::class.java))
+                    finish()
+                }
+            } catch (_: Exception) {
+                // Si hay un fallo temporal de red, no desactivamos al usuario.
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -122,6 +185,8 @@ class MainActivity : AbstractPlayerHostActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        startActivationMonitor()
 
         // manually apply additional padding for edge-to-edge compatibility
         // see https://developer.android.com/develop/ui/views/layout/edge-to-edge

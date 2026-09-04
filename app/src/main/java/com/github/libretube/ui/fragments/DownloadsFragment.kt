@@ -386,6 +386,20 @@ class DownloadsFragmentPage : DynamicLayoutManagerFragment(R.layout.fragment_dow
     override fun onResume() {
         super.onResume()
 
+        lifecycleScope.launch {
+            val downloads = withContext(Dispatchers.IO) {
+                Database.downloadDao().getAll()
+            }.let { downloads ->
+                if (downloadTab != DownloadTab.PLAYLIST) {
+                    downloads.filterByTab(downloadTab)
+                } else {
+                    downloads
+                }
+            }
+
+            submitDownloadList(downloads)
+        }
+
         val filter = IntentFilter().apply {
             addAction(DownloadService.ACTION_SERVICE_STARTED)
             addAction(DownloadService.ACTION_SERVICE_STOPPED)

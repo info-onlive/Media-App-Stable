@@ -675,7 +675,7 @@ if (_binding == null) {
             switchToAudioMode()
         }
 
-        binding.relPlayerPip.isVisible = isPipAvailable()
+        binding.relPlayerPip.isVisible = false
 
         binding.relPlayerPip.setOnClickListener {
             PictureInPictureCompat.enterPictureInPictureMode(requireActivity(), pipParams)
@@ -684,11 +684,7 @@ if (_binding == null) {
 
         binding.relatedRecView.layoutManager = LinearLayoutManager(
             context,
-            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                LinearLayoutManager.HORIZONTAL
-            } else {
-                LinearLayoutManager.VERTICAL
-            },
+            LinearLayoutManager.VERTICAL,
             false
         )
 
@@ -1183,7 +1179,8 @@ if (_binding == null) {
 
         val relatedLayoutManager = binding.relatedRecView.layoutManager as LinearLayoutManager
         binding.relatedRecView.adapter = VideoCardsAdapter(
-            columnWidthDp = if (relatedLayoutManager.orientation == LinearLayoutManager.HORIZONTAL) 250f else null
+            columnWidthDp = null,
+            fillParentWidth = true
         ).also { adapter ->
             adapter.submitList(relatedStreams)
         }

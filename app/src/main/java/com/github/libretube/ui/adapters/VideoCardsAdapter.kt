@@ -33,7 +33,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class VideoCardsAdapter(private val columnWidthDp: Float? = null) :
+class VideoCardsAdapter(
+    private val columnWidthDp: Float? = null,
+    private val fillParentWidth: Boolean = false
+) :
     ListAdapter<StreamItem, VideoCardsViewHolder>(DiffUtilItemCallback()) {
 
     override fun getItemViewType(position: Int): Int {
@@ -78,6 +81,10 @@ class VideoCardsAdapter(private val columnWidthDp: Float? = null) :
             if (columnWidthDp != null) {
                 root.updateLayoutParams {
                     width = columnWidthDp.dpToPx()
+                }
+            } else if (fillParentWidth) {
+                root.updateLayoutParams {
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
                 }
             }
             watchProgress.setWatchProgressLength(videoId, video.duration ?: 0L)

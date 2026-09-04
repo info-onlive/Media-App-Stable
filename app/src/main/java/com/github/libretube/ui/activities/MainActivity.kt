@@ -1,6 +1,9 @@
 package com.github.libretube.ui.activities
 
+import com.github.libretube.ui.sheets.QuickActionsBottomSheet
+
 import android.content.Intent
+import android.content.ClipboardManager
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -9,6 +12,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ScrollView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
@@ -42,6 +46,7 @@ import com.github.libretube.enums.SearchType
 import com.github.libretube.enums.TopLevelDestination
 import com.github.libretube.extensions.anyChildFocused
 import com.github.libretube.helpers.ImportHelper
+import com.github.libretube.helpers.DownloadHelper
 import com.github.libretube.helpers.IntentHelper
 import com.github.libretube.helpers.NavBarHelper
 import com.github.libretube.helpers.NavigationHelper
@@ -61,6 +66,7 @@ import com.github.libretube.ui.models.SubscriptionsViewModel
 import com.github.libretube.ui.preferences.BackupRestoreSettings
 import com.github.libretube.ui.preferences.BackupRestoreSettings.Companion.FILETYPE_ANY
 import com.github.libretube.util.UpdateChecker
+import com.github.libretube.util.TextUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -268,7 +274,9 @@ class MainActivity : AbstractPlayerHostActivity() {
         // Prevent duplicate entries into backstack, if selected item and current
         // visible fragment is different, then navigate to selected item.
         binding.bottomNav.setOnItemReselectedListener {
-            if (it.itemId != navController.currentDestination?.id) {
+            if (it.itemId == R.id.createAction) {
+                showQuickActions()
+            } else if (it.itemId != navController.currentDestination?.id) {
                 navigateToBottomSelectedItem(it)
             } else {
                 // get the current fragment
@@ -278,7 +286,16 @@ class MainActivity : AbstractPlayerHostActivity() {
         }
 
         binding.bottomNav.setOnItemSelectedListener {
-            navigateToBottomSelectedItem(it)
+            if (it.itemId == R.id.createAction) {
+                showQuickActions()
+                true
+            } else {
+                navigateToBottomSelectedItem(it)
+            }
+        }
+
+        binding.createButton.setOnClickListener {
+            showQuickActions()
         }
 
         if (binding.bottomNav.menu.children.none { it.itemId == startFragmentId }) deselectBottomBarItems()
@@ -290,8 +307,6 @@ class MainActivity : AbstractPlayerHostActivity() {
             if (!BuildConfig.DEBUG)
                 ErrorDialog().show(supportFragmentManager, null)
         }
-
-        setupSubscriptionsBadge()
 
         loadIntentData()
 
@@ -670,14 +685,103 @@ class MainActivity : AbstractPlayerHostActivity() {
         )
     }
 
-    private fun navigateToBottomSelectedItem(item: MenuItem): Boolean {
-        if (item.itemId == R.id.downloadsFragment) {
-            // Botón central "+" reservado para acciones de creación.
-            return false
-        }
+    private fun getClipboardText(): String? {
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = clipboard.primaryClip ?: return null
+        if (clip.itemCount == 0) return null
 
-        if (item.itemId == R.id.subscriptionsFragment) {
-            binding.bottomNav.removeBadge(R.id.subscriptionsFragment)
+        return clip.getItemAt(0)
+            .coerceToText(this)
+            ?.toString()
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+    }
+
+    private fun showQuickActions() {
+        QuickActionsBottomSheet { action ->
+            when (action) {
+                QuickActionsBottomSheet.Action.PASTE_LINK -> {
+                    val link = getClipboardText()
+
+                    if (link == null) {
+                        Toast.makeText(
+                            this,
+                            "No hay ningún enlace copiado",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@QuickActionsBottomSheet
+                    }
+
+                    val uri = link.toUri()
+
+                    if (link.toHttpUrlOrNull() == null) {
+                        Toast.makeText(
+                            this,
+                            "El contenido copiado no es un enlace válido",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@QuickActionsBottomSheet
+                    }
+
+                    val queryIntent = IntentHelper.resolveType(uri)
+
+                    val didNavigate = navigateToMediaByIntent(queryIntent) {
+                        searchItem.collapseActionView()
+                    }
+
+                    if (!didNavigate) {
+                        Toast.makeText(
+                            this,
+                            "No se pudo abrir este enlace",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                QuickActionsBottomSheet.Action.SEARCH -> {
+                    searchItem.expandActionView()
+                    searchView.requestFocus()
+                }
+
+                QuickActionsBottomSheet.Action.DOWNLOAD_LINK -> {
+                    val link = getClipboardText()
+
+                    if (link == null) {
+                        Toast.makeText(
+                            this,
+                            "Copia primero el enlace del video",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@QuickActionsBottomSheet
+                    }
+
+                    val videoId = runCatching {
+                        TextUtils.getVideoIdFromUri(link.toUri())
+                    }.getOrNull()
+
+                    if (videoId.isNullOrBlank()) {
+                        Toast.makeText(
+                            this,
+                            "El enlace no corresponde a un video válido",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@QuickActionsBottomSheet
+                    }
+
+                    DownloadHelper.startDownloadDialog(
+                        this,
+                        supportFragmentManager,
+                        videoId
+                    )
+                }
+            }
+        }.show(supportFragmentManager, "quick_actions")
+    }
+
+    private fun navigateToBottomSelectedItem(item: MenuItem): Boolean {
+        if (item.itemId == R.id.createAction) {
+            showQuickActions()
+            return false
         }
 
         // Remove focus from search view when navigating to bottom view.

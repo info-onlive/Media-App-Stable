@@ -10,6 +10,7 @@ interface ActivationApi {
     @FormUrlEncoded
     @POST("panel/api/check_code.php")
     suspend fun checkCode(
-        @Field("code") code: String
+        @Field("code") code: String,
+        @Field("device_id") deviceId: String
     ): ActivationResponse
 }

@@ -2,6 +2,7 @@ package com.github.libretube.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import androidx.lifecycle.lifecycleScope
 import com.github.libretube.api.RetrofitInstance
 import com.github.libretube.databinding.ActivityActivationBinding
@@ -33,7 +34,15 @@ class ActivationActivity : BaseActivity() {
 
             lifecycleScope.launch {
                 try {
-                    val response = RetrofitInstance.activationApi.checkCode(code)
+                    val deviceId = Settings.Secure.getString(
+                        contentResolver,
+                        Settings.Secure.ANDROID_ID
+                    )
+
+                    val response = RetrofitInstance.activationApi.checkCode(
+                        code,
+                        deviceId
+                    )
 
                     if (response.ok) {
                         getSharedPreferences("activation", MODE_PRIVATE)

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ClipboardManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -92,7 +93,14 @@ class MainActivity : AbstractPlayerHostActivity() {
                 if (!NetworkHelper.isNetworkAvailable(this@MainActivity)) continue
 
                 try {
-                    val response = RetrofitInstance.activationApi.checkCode(code)
+                    val deviceId = Settings.Secure.getString(
+                        contentResolver,
+                        Settings.Secure.ANDROID_ID
+                    )
+                    val response = RetrofitInstance.activationApi.checkCode(
+                        code,
+                        deviceId
+                    )
 
                     if (!response.ok) {
                         activationPrefs.edit().clear().apply()
@@ -156,7 +164,14 @@ class MainActivity : AbstractPlayerHostActivity() {
 
         lifecycleScope.launch {
             try {
-                val response = RetrofitInstance.activationApi.checkCode(code)
+                val deviceId = Settings.Secure.getString(
+                        contentResolver,
+                        Settings.Secure.ANDROID_ID
+                    )
+                    val response = RetrofitInstance.activationApi.checkCode(
+                        code,
+                        deviceId
+                    )
 
                 if (!response.ok) {
                     activationPrefs.edit().clear().apply()

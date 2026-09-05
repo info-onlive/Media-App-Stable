@@ -97,9 +97,11 @@ class MainActivity : AbstractPlayerHostActivity() {
                         contentResolver,
                         Settings.Secure.ANDROID_ID
                     )
+                    val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
                     val response = RetrofitInstance.activationApi.checkCode(
                         code,
-                        deviceId
+                        deviceId,
+                        deviceName
                     )
 
                     if (!response.ok) {
@@ -168,9 +170,11 @@ class MainActivity : AbstractPlayerHostActivity() {
                         contentResolver,
                         Settings.Secure.ANDROID_ID
                     )
+                    val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
                     val response = RetrofitInstance.activationApi.checkCode(
                         code,
-                        deviceId
+                        deviceId,
+                        deviceName
                     )
 
                 if (!response.ok) {

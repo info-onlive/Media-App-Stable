@@ -39,6 +39,25 @@ abstract class AbstractPlayerHostActivity: BaseActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
+            R.id.action_change_code -> {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Cambiar código")
+                    .setMessage("¿Quieres usar otro código de activación? Tus datos, descargas y configuraciones no se borrarán.")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Cambiar") { _, _ ->
+                        getSharedPreferences("activation", MODE_PRIVATE)
+                            .edit()
+                            .clear()
+                            .apply()
+
+                        val intent = Intent(this, ActivationActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                    .show()
+                true
+            }
+
             R.id.action_settings -> {
                 val settingsIntent = Intent(this, SettingsActivity::class.java)
                 startActivity(settingsIntent)

@@ -2,6 +2,7 @@ package com.github.libretube.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Build
 import android.provider.Settings
 import androidx.lifecycle.lifecycleScope
 import com.github.libretube.api.RetrofitInstance
@@ -39,9 +40,12 @@ class ActivationActivity : BaseActivity() {
                         Settings.Secure.ANDROID_ID
                     )
 
+                    val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
+
                     val response = RetrofitInstance.activationApi.checkCode(
                         code,
-                        deviceId
+                        deviceId,
+                        deviceName
                     )
 
                     if (response.ok) {

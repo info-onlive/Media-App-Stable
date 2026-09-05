@@ -493,7 +493,7 @@ object PlayerHelper {
             .setTrackSelector(trackSelector)
             .setHandleAudioBecomingNoisy(true)
             .setLoadControl(getLoadControl())
-            .setAudioAttributes(audioAttributes, true)
+            .setAudioAttributes(audioAttributes, false)
             .build()
             .apply {
                 loadPlaybackParams()

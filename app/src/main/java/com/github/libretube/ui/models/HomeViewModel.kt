@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,10 +45,11 @@ class HomeViewModel : ViewModel() {
     val bookmarks: MutableLiveData<List<PlaylistBookmark>> = MutableLiveData(null)
     val playlists: MutableLiveData<List<Playlists>> = MutableLiveData(null)
     val continueWatching: MutableLiveData<List<StreamItem>> = MutableLiveData(null)
+    val recommended: MutableLiveData<List<StreamItem>> = MutableLiveData(null)
     val isLoading: MutableLiveData<Boolean> = MutableLiveData(true)
     val loadedSuccessfully: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    private val sections get() = listOf(trending, feed, bookmarks, playlists, continueWatching)
+    private val sections get() = listOf(trending, feed, bookmarks, playlists, continueWatching, recommended)
 
     private var loadHomeJob: Job? = null
 
@@ -67,7 +69,8 @@ class HomeViewModel : ViewModel() {
                     async { if (visibleItems.contains(FEATURED)) loadFeed(subscriptionsViewModel) },
                     async { if (visibleItems.contains(BOOKMARKS)) loadBookmarks() },
                     async { if (visibleItems.contains(PLAYLISTS)) loadPlaylists() },
-                    async { if (visibleItems.contains(WATCHING)) loadVideosToContinueWatching() }
+                    async { if (visibleItems.contains(WATCHING)) loadVideosToContinueWatching() },
+                    async { loadRecommendationsFromHistory() }
                 )
                 loadedSuccessfully.value = sections.any { it.value != null }
                 isLoading.value = false
@@ -122,6 +125,42 @@ class HomeViewModel : ViewModel() {
         runSafely(
             onSuccess = { newPlaylists -> playlists.updateIfChanged(newPlaylists) },
             ioBlock = { PlaylistsHelper.getPlaylists() }
+        )
+    }
+
+    private suspend fun loadRecommendationsFromHistory() {
+        if (!PlayerHelper.watchHistoryEnabled) return
+
+        runSafely(
+            onSuccess = { videos ->
+                recommended.updateIfChanged(videos)
+            },
+            ioBlock = {
+                val history = DatabaseHelper.getWatchHistoryPage(1, 20)
+                if (history.isEmpty()) return@runSafely emptyList()
+
+                val watchedIds = history.map { it.videoId }.toSet()
+
+                coroutineScope {
+                    history
+                        .take(4)
+                        .map { item ->
+                            async(Dispatchers.IO) {
+                                runCatching {
+                                    MediaServiceRepository.instance
+                                        .getStreams(item.videoId)
+                                        .relatedStreams
+                                }.getOrDefault(emptyList())
+                            }
+                        }
+                        .awaitAll()
+                        .flatten()
+                        .filterNot { watchedIds.contains(it.url) }
+                        .distinctBy { it.url }
+                        .shuffled()
+                        .take(20)
+                }
+            }
         )
     }
 

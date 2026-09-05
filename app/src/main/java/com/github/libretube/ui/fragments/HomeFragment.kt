@@ -48,6 +48,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private val trendingAdapter = VideoCardsAdapter()
     private val feedAdapter = VideoCardsAdapter(columnWidthDp = 250f)
     private val watchingAdapter = VideoCardsAdapter(columnWidthDp = 250f)
+    private val recommendedAdapter = VideoCardsAdapter(columnWidthDp = 250f)
     private val bookmarkAdapter = CarouselPlaylistAdapter()
     private val playlistAdapter = CarouselPlaylistAdapter()
 
@@ -79,6 +80,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         })
         binding.watchingRV.adapter = watchingAdapter
+        binding.recommendedRV.adapter = recommendedAdapter
 
         with(homeViewModel) {
             trending.observe(viewLifecycleOwner, ::showTrending)
@@ -86,6 +88,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             bookmarks.observe(viewLifecycleOwner, ::showBookmarks)
             playlists.observe(viewLifecycleOwner, ::showPlaylists)
             continueWatching.observe(viewLifecycleOwner, ::showContinueWatching)
+            recommended.observe(viewLifecycleOwner, ::showRecommended)
             isLoading.observe(viewLifecycleOwner, ::updateLoading)
         }
 
@@ -227,6 +230,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.changeInstance.setOnClickListener {
             redirectToIntentSettings()
         }
+    }
+
+    private fun showRecommended(videos: List<StreamItem>?) {
+        val items = videos.orEmpty()
+        binding.recommendedTV.isVisible = items.isNotEmpty()
+        binding.recommendedRV.isVisible = items.isNotEmpty()
+        recommendedAdapter.submitList(items)
     }
 
     override fun onResume() {
